@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "forgejo-classroom"
+version = "0.1.0"
+description = "GitHub-Classroom-equivalent for Forgejo, built as a Zephyrex ServerFramework consumer"
+requires-python = ">=3.11"
+dependencies = [
+    "zephyrex @ git+https://github.com/JamesonRGrieve/ServerFramework.git",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-xdist",
+]
+
+[tool.black]
+line-length = 120
+
+[tool.ruff]
+line-length = 120
+
+[tool.pytest.ini_options]
+testpaths = ["extensions"]

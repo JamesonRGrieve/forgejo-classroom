@@ -1,0 +1,28 @@
+{
+  "name": "forgejo-classroom-client",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Forgejo Classroom client app built on Zephyrex Framework",
+  "license": "AGPL-3.0-or-later",
+  "scripts": {
+    "dev": "next dev -p 1110",
+    "build": "next build",
+    "start": "next start -p 1110",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "zephyrex": "file:../../client-framework",
+    "@zephyrex/auth": "file:../../auth",
+    "@zephyrex/zod2gql": "file:../../zod2gql",
+    "@jgrieve/forms": "file:../../dynamic-form",
+    "next": "^16.2.6",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^25.8.0",
+    "@types/react": "^19.2.14",
+    "typescript": "^6.0.3"
+  }
+}

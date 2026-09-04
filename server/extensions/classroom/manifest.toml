@@ -1,0 +1,12 @@
+name = "classroom"
+version = "0.1.0"
+description = "GitHub-Classroom-equivalent for Forgejo — classrooms, rosters, assignments, accepted repos, and autograding runs"
+
+# Optional: when present, acl_rbac drives per-row visibility so a teacher
+# sees the full roster and all grades while a student sees only their own
+# repository and grading runs. classroom carries no visibility column.
+[[extension_dependencies]]
+name = "acl_rbac"
+optional = true
+
+[python_dependencies]

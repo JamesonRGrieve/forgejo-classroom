@@ -1,0 +1,63 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "incremental": true,
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@/components/*": [
+        "../../client-framework/src/components/*"
+      ],
+      "@/lib/*": [
+        "../../client-framework/src/lib/*"
+      ],
+      "@/hooks/*": [
+        "../../client-framework/src/hooks/*"
+      ],
+      "@jgrieve/appwrapper/*": [
+        "../../client-framework/src/components/appwrapper/src/*"
+      ],
+      "@zephyrex/auth/*": [
+        "../../auth/src/*"
+      ],
+      "@zephyrex/zod2gql": [
+        "../../zod2gql/src"
+      ],
+      "@jgrieve/forms/*": [
+        "../../dynamic-form/src/*"
+      ]
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
