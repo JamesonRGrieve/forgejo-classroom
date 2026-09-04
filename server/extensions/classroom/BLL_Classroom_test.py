@@ -21,6 +21,8 @@ from zephyrex.extensions.classroom.BLL_Classroom import (
     AssignmentModel,
     AssignmentRepoManager,
     AssignmentRepoModel,
+    AutogradeTestManager,
+    AutogradeTestModel,
     ClassroomManager,
     ClassroomModel,
     GradingRunManager,
@@ -37,6 +39,7 @@ class TestModelManagerWiring:
         (ClassroomModel, ClassroomManager),
         (RosterEntryModel, RosterEntryManager),
         (AssignmentModel, AssignmentManager),
+        (AutogradeTestModel, AutogradeTestManager),
         (AssignmentGroupModel, AssignmentGroupManager),
         (AssignmentRepoModel, AssignmentRepoManager),
         (GradingRunModel, GradingRunManager),
@@ -199,6 +202,73 @@ class TestGradingRunContract:
 
         with pytest.raises(pydantic.ValidationError):
             GradingRunModel.Create(assignment_repo_id="ar1", status="pending")
+
+
+class TestAutogradeTestModel:
+    def test_defaults(self):
+        t = AutogradeTestModel(assignment_id="a1", name="echo test")
+        assert t.comparison == "included"
+        assert t.timeout == 10
+        assert t.points == 1.0
+
+    def test_comparison_rejects_unknown(self):
+        import pydantic
+
+        with pytest.raises(pydantic.ValidationError):
+            AutogradeTestModel.Create(assignment_id="a1", name="t", comparison="fuzzy")
+
+
+class TestCustomRouteWiring:
+    def test_assignment_routes_map_to_real_methods(self):
+        funcs = {r["function"] for r in AssignmentManager.custom_routes}
+        assert funcs == {
+            "accept_route",
+            "regrade_route",
+            "grades_csv_route",
+            "submissions_route",
+        }
+        for fn in funcs:
+            assert callable(getattr(AssignmentManager, fn))
+
+    def test_classroom_roster_import_route(self):
+        funcs = {r["function"] for r in ClassroomManager.custom_routes}
+        assert "roster_import_route" in funcs
+        assert callable(getattr(ClassroomManager, "roster_import_route"))
+
+    def test_grading_run_report_route_is_static_and_pinned(self):
+        route = GradingRunManager.custom_routes[0]
+        assert route["function"] == "report_route"
+        assert route["is_static"] is True
+        assert route["path"] == "/report"
+        # The pinned prefix + route path must equal the URL the injected
+        # grader posts to, or autograding results are lost.
+        assert GradingRunManager.prefix == "/v1/grading_run"
+        from zephyrex.extensions.classroom.autograde import generate_grader_script
+
+        assert "/v1/grading_run/report" in generate_grader_script()
+        assert GradingRunManager.prefix + "/report" == "/v1/grading_run/report"
+
+
+class TestReportTokenAuth:
+    """The CI report ingest must reject bad/missing bearer tokens."""
+
+    def test_rejects_wrong_token(self):
+        os.environ["CLASSROOM_REPORT_TOKEN"] = "correct-horse"
+        with pytest.raises(Exception) as exc:
+            GradingRunManager.report_route(authorization="Bearer wrong", body={"repo_full_name": "o/r"})
+        assert getattr(exc.value, "status_code", None) == 401
+
+    def test_rejects_missing_authorization(self):
+        os.environ["CLASSROOM_REPORT_TOKEN"] = "correct-horse"
+        with pytest.raises(Exception) as exc:
+            GradingRunManager.report_route(authorization=None, body={"repo_full_name": "o/r"})
+        assert getattr(exc.value, "status_code", None) == 401
+
+    def test_rejects_when_no_token_configured(self):
+        os.environ.pop("CLASSROOM_REPORT_TOKEN", None)
+        with pytest.raises(Exception) as exc:
+            GradingRunManager.report_route(authorization="Bearer anything", body={"repo_full_name": "o/r"})
+        assert getattr(exc.value, "status_code", None) == 401
 
 
 class TestNoReinventedRbac:

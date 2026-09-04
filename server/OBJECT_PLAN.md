@@ -74,10 +74,28 @@ username and their framework `User`. In the target deployment this sits
 behind the environment's Authentik SSO with Forgejo's native OIDC — no
 edge/forward-proxy auth.
 
-## Deferred (tracked here, not stubbed in code)
+## Implemented
 
-The `forgejo_client.py` module and the `hook_bll` provisioning/grading
-hooks are the next build increment. They are intentionally **not**
-present as unwired stubs — this document is their spec. The current code
-is the complete, tested domain layer plus the framework's auto-generated
-REST/GraphQL surface.
+The companion runtime is built and tested:
+
+- `forgejo_client.py` — Forgejo REST wrapper on `ProviderHTTPClientSync`.
+- `autograde.py` — test config, scoring, the injected workflow, and the
+  stdlib grader (verified by real subprocess execution).
+- `reporting.py` — roster CSV import, grades CSV export, batch-clone
+  manifest (pure, unit-tested).
+- `BLL_Classroom.py` custom routes — `accept`, `regrade`, `grades.csv`,
+  `submissions`, `roster/import`, and the token-authenticated
+  `grading_run/report` ingest — orchestrating the tested engines above.
+
+Autograding uses a **reporter callback** rather than Actions-log parsing:
+the injected workflow computes the score in CI and POSTs it to
+`/v1/grading_run/report` with a bearer token set as a per-repo Actions
+secret during provisioning. This is robust and matches GitHub's newer
+autograding reporter model.
+
+### Not yet wired
+
+- Forgejo OAuth accept flow (the student currently supplies their Forgejo
+  username; wiring Forgejo as an OAuth2 provider auto-fills it).
+- Deadline **cutoff enforcement** (deadline is stored and displayed).
+- LMS/LTI roster sync (CSV import is the universal path today).

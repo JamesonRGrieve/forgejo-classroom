@@ -12,10 +12,10 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "zephyrex": "file:../../client-framework",
-    "@zephyrex/auth": "file:../../auth",
-    "@zephyrex/zod2gql": "file:../../zod2gql",
-    "@jgrieve/forms": "file:../../dynamic-form",
+    "zephyrex": "link:../../client-framework",
+    "@zephyrex/auth": "link:../../auth",
+    "@zephyrex/zod2gql": "link:../../zod2gql",
+    "@jgrieve/forms": "link:../../dynamic-form",
     "next": "^16.2.6",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"

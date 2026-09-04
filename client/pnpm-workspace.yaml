@@ -1,3 +1,7 @@
-allowBuilds:
-  core-js: set this to true or false
-  sharp: set this to true or false
+# Local sibling packages (zephyrex, auth, forms, zod2gql) are consumed via
+# the `link:` protocol in package.json so the framework's full source (incl.
+# src/components) resolves — a plain `file:` copy honors the framework's
+# `files` allowlist, which omits src/components that its own code imports.
+ignoredBuiltDependencies:
+  - core-js
+  - sharp

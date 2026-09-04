@@ -24,4 +24,4 @@ class TestExtensionMetadata:
     def test_models_returns_full_roster(self):
         models = ClassroomExtension.models()
         assert set(models) == set(ALL_MODELS)
-        assert len(models) == 6  # bump when adding owned tables.
+        assert len(models) == 7  # bump when adding owned tables.
