@@ -323,6 +323,13 @@ class AssignmentModel(
         False,
         description="When true, accepting after the deadline is rejected (hard cutoff).",
     )
+    protected_paths: Optional[str] = Field(
+        None,
+        description=(
+            "Comma/newline-separated glob patterns students must not modify "
+            "(e.g. tests/**, .classroom/**). A violation fails autograding."
+        ),
+    )
     table_comment: ClassVar[str] = (
         "An assignment. template_repo is the starter cloned per "
         "student/group; autograde_workflow names the Forgejo Actions "
@@ -343,6 +350,7 @@ class AssignmentModel(
         visibility: Optional[AssignmentVisibility] = None
         invite_enabled: Optional[bool] = None
         enforce_deadline: Optional[bool] = None
+        protected_paths: Optional[str] = None
 
     class Update(BaseModel):
         name: Optional[str] = None
@@ -354,6 +362,7 @@ class AssignmentModel(
         visibility: Optional[AssignmentVisibility] = None
         invite_enabled: Optional[bool] = None
         enforce_deadline: Optional[bool] = None
+        protected_paths: Optional[str] = None
 
     class Search(ApplicationModel.Search, ClassroomModel.Reference.ID.Search):
         name: Optional[StringSearchModel] = None
@@ -930,9 +939,15 @@ def _link_roster(
     )
 
 
-def _inject_autograde(forgejo: ForgejoClient, org: str, repo: str, tests: List[Dict[str, Any]]) -> None:
+def _inject_autograde(
+    forgejo: ForgejoClient,
+    org: str,
+    repo: str,
+    tests: List[Dict[str, Any]],
+    protected_paths: Optional[List[str]] = None,
+) -> None:
     """Commit the workflow, tests.json, and grader into a fresh repo."""
-    if not tests:
+    if not tests and not protected_paths:
         return
     forgejo.put_file(
         org,
@@ -946,7 +961,7 @@ def _inject_autograde(forgejo: ForgejoClient, org: str, repo: str, tests: List[D
         org,
         repo,
         autograde.TESTS_PATH,
-        _b64(autograde.generate_tests_json(tests)),
+        _b64(autograde.generate_tests_json(tests, protected_paths)),
         "Add autograding tests",
         branch="main",
     )
@@ -1025,7 +1040,9 @@ def _provision_individual(
         description=f"{_val(assignment, 'name')} — {forgejo_username}",
     )
     forgejo.add_collaborator(org, repo_name, forgejo_username, permission="write")
-    _inject_autograde(forgejo, org, repo_name, tests)
+    _inject_autograde(
+        forgejo, org, repo_name, tests, autograde.parse_protected_paths(_val(assignment, "protected_paths"))
+    )
     _finalize_repo(forgejo, org, repo_name)
     created = repos.create(
         assignment_id=_val(assignment, "id"),
@@ -1089,7 +1106,9 @@ def _provision_group(
     )
     if team_id:
         forgejo.add_team_repo(int(team_id), org, repo_name)
-    _inject_autograde(forgejo, org, repo_name, tests)
+    _inject_autograde(
+        forgejo, org, repo_name, tests, autograde.parse_protected_paths(_val(assignment, "protected_paths"))
+    )
     _finalize_repo(forgejo, org, repo_name)
     group = groups.create(
         assignment_id=_val(assignment, "id"),

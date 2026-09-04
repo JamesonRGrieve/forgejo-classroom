@@ -64,7 +64,7 @@ client/     Next.js frontend — the `classroom` extension on client-framework
 | Re-run autograding | ✅ |
 | LMS roster sync (LTI) | ⚠️ CSV import is the universal path; LTI not wired |
 | "Log in with your git host" identity | ⚠️ student enters username; Forgejo OAuth auto-fill not wired |
-| Protected file paths | ⚠️ not implemented |
+| Protected file paths | ✅ (autograder fails on protected-path changes) |
 | Editor / Codespaces integration | N/A — no Forgejo equivalent |
 
 ## Configuration (server)

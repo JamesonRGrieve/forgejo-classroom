@@ -103,11 +103,29 @@ def overall_status(earned: float, possible: float) -> str:
     return "passed" if earned >= possible else "failed"
 
 
-def generate_tests_json(tests: Sequence[Mapping[str, object]]) -> str:
-    """Serialize test specs to the ``tests.json`` injected into the repo."""
+def generate_tests_json(
+    tests: Sequence[Mapping[str, object]],
+    protected_paths: Optional[Sequence[str]] = None,
+) -> str:
+    """Serialize test specs to the ``tests.json`` injected into the repo.
+
+    ``protected_paths`` are glob patterns the student must not modify; the
+    grader fails the run and zeroes the score if any match a changed file.
+    """
     fields = ("name", "setup", "run", "input", "expected_output", "comparison", "timeout", "points")
     cleaned = [{k: t.get(k) for k in fields if t.get(k) is not None} for t in tests]
-    return json.dumps({"tests": cleaned}, indent=2, sort_keys=True)
+    payload: dict = {"tests": cleaned}
+    if protected_paths:
+        payload["protected_paths"] = [p for p in protected_paths if p]
+    return json.dumps(payload, indent=2, sort_keys=True)
+
+
+def parse_protected_paths(raw: Optional[str]) -> List[str]:
+    """Split a comma/newline-separated protected-paths string into globs."""
+    if not raw:
+        return []
+    parts = re.split(r"[,\n]", raw)
+    return [p.strip() for p in parts if p.strip()]
 
 
 def generate_workflow_yaml() -> str:
@@ -153,6 +171,7 @@ def generate_grader_script() -> str:
 # with compare_output/score_results above; the subprocess test guards drift.
 _GRADER_SCRIPT = r'''#!/usr/bin/env python3
 """Classroom autograder (injected). Runs tests.json and reports the score."""
+import fnmatch
 import json
 import os
 import re
@@ -161,6 +180,35 @@ import sys
 import urllib.request
 
 TESTS_FILE = os.environ.get("CLASSROOM_TESTS", ".classroom/tests.json")
+
+
+def protected_violations(patterns):
+    """Return student-changed files matching a protected glob (empty if none)."""
+    if not patterns:
+        return []
+    try:
+        root = subprocess.run(
+            ["git", "rev-list", "--max-parents=0", "HEAD"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            timeout=30,
+        ).stdout.decode().strip().splitlines()
+        base = root[-1] if root else None
+        if not base:
+            return []
+        changed = subprocess.run(
+            ["git", "diff", "--name-only", base, "HEAD"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            timeout=30,
+        ).stdout.decode().splitlines()
+    except Exception:
+        return []
+    hits = []
+    for path in changed:
+        if any(fnmatch.fnmatch(path, pat) for pat in patterns):
+            hits.append(path)
+    return hits
 
 
 def compare(actual, expected, comparison):
@@ -207,7 +255,12 @@ def main():
     results = [run_test(t) for t in config.get("tests", [])]
     earned = sum(r["points"] for r in results if r["passed"])
     possible = sum(r["points"] for r in results)
-    status = "error" if possible <= 0 else ("passed" if earned >= possible else "failed")
+    violations = protected_violations(config.get("protected_paths", []))
+    if violations:
+        earned = 0
+        status = "failed"
+    else:
+        status = "error" if possible <= 0 else ("passed" if earned >= possible else "failed")
     report = {
         "repo_full_name": os.environ.get("GITHUB_REPOSITORY", ""),
         "commit_sha": os.environ.get("GITHUB_SHA", ""),
@@ -216,6 +269,7 @@ def main():
         "status": status,
         "log_url": os.environ.get("CLASSROOM_LOG_URL", ""),
         "tests": results,
+        "protected_violations": violations,
     }
     api = os.environ.get("CLASSROOM_API_URL")
     token = os.environ.get("CLASSROOM_REPORT_TOKEN", "")
@@ -245,6 +299,7 @@ __all__ = [
     "score_results",
     "overall_status",
     "generate_tests_json",
+    "parse_protected_paths",
     "generate_workflow_yaml",
     "generate_grader_script",
     "WORKFLOW_PATH",

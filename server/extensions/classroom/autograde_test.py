@@ -25,6 +25,7 @@ from zephyrex.extensions.classroom.autograde import (
     generate_tests_json,
     generate_workflow_yaml,
     overall_status,
+    parse_protected_paths,
     score_results,
 )
 
@@ -185,3 +186,60 @@ class TestGraderSubprocess:
         proc = self._run(repo)
         report = json.loads(proc.stdout.decode())
         assert report["score"] == 1.0
+
+
+class TestProtectedPaths:
+    def test_parse_protected_paths(self):
+        assert parse_protected_paths("tests/**, .classroom/**\nMakefile") == [
+            "tests/**",
+            ".classroom/**",
+            "Makefile",
+        ]
+        assert parse_protected_paths(None) == []
+        assert parse_protected_paths("") == []
+
+    def test_tests_json_includes_protected(self):
+        payload = json.loads(generate_tests_json([{"name": "t", "run": "true", "points": 1.0}], ["tests/**"]))
+        assert payload["protected_paths"] == ["tests/**"]
+
+    def test_grader_fails_on_protected_violation(self, tmp_path):
+        import subprocess as sp
+
+        repo = tmp_path
+        git = ["git", "-c", "user.email=t@t", "-c", "user.name=t", "-c", "commit.gpgsign=false"]
+        sp.run(["git", "init", "-q", str(repo)], check=True, timeout=30)
+        tests_dir = repo / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "secret.py").write_text("# original protected\n")
+        (repo / "solution.py").write_text("print('hi')\n")
+        sp.run([*git, "add", "-A"], cwd=repo, check=True, timeout=30)
+        sp.run([*git, "commit", "-q", "-m", "init"], cwd=repo, check=True, timeout=30)
+        # Student tampers with a protected file.
+        (tests_dir / "secret.py").write_text("# tampered\n")
+        sp.run([*git, "add", "-A"], cwd=repo, check=True, timeout=30)
+        sp.run([*git, "commit", "-q", "-m", "tamper"], cwd=repo, check=True, timeout=30)
+
+        classroom = repo / ".classroom"
+        classroom.mkdir()
+        (classroom / "grade.py").write_text(generate_grader_script())
+        (classroom / "tests.json").write_text(
+            generate_tests_json(
+                [{"name": "runs", "run": "python solution.py", "expected_output": "hi", "points": 5.0}], ["tests/**"]
+            )
+        )
+        env = dict(os.environ)
+        env.pop("CLASSROOM_API_URL", None)
+        env["GITHUB_REPOSITORY"] = "org/repo"
+        env["GITHUB_SHA"] = "deadbeef"
+        proc = sp.run(
+            [sys.executable, ".classroom/grade.py"],
+            cwd=repo,
+            env=env,
+            stdout=sp.PIPE,
+            stderr=sp.STDOUT,
+            timeout=60,
+        )
+        report = json.loads(proc.stdout.decode())
+        assert report["protected_violations"] == ["tests/secret.py"]
+        assert report["score"] == 0
+        assert report["status"] == "failed"

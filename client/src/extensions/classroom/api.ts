@@ -31,6 +31,7 @@ export interface Assignment {
   is_group?: boolean;
   deadline?: string | null;
   enforce_deadline?: boolean;
+  protected_paths?: string;
   points_possible?: number | null;
   visibility?: 'private' | 'public';
   invite_enabled?: boolean;

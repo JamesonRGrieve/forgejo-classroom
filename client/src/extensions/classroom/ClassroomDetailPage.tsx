@@ -133,6 +133,7 @@ function AssignmentsSection({
   const [points, setPoints] = useState('');
   const [deadline, setDeadline] = useState('');
   const [enforceDeadline, setEnforceDeadline] = useState(false);
+  const [protectedPaths, setProtectedPaths] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -152,6 +153,7 @@ function AssignmentsSection({
         points_possible: points ? Number(points) : undefined,
         deadline: deadline ? new Date(deadline).toISOString() : undefined,
         enforce_deadline: enforceDeadline,
+        protected_paths: protectedPaths.trim() || undefined,
       });
       setName('');
       setTemplate('');
@@ -159,6 +161,7 @@ function AssignmentsSection({
       setPoints('');
       setDeadline('');
       setEnforceDeadline(false);
+      setProtectedPaths('');
       setIsGroup(false);
       assignments.reload();
     } catch (err) {
@@ -178,6 +181,13 @@ function AssignmentsSection({
         <Field label="Points possible" id="a-points" value={points} onChange={setPoints} type="number" />
         <Field label="Deadline" id="a-deadline" value={deadline} onChange={setDeadline} type="datetime-local" />
       </div>
+      <Field
+        label="Protected paths (globs, comma/newline-separated)"
+        id="a-protected"
+        value={protectedPaths}
+        onChange={setProtectedPaths}
+        placeholder="tests/**, .classroom/**"
+      />
       <Checkbox label="Group assignment" id="a-group" checked={isGroup} onChange={setIsGroup} />
       <Checkbox label="Enforce deadline (reject accepts after the deadline)" id="a-enforce" checked={enforceDeadline} onChange={setEnforceDeadline} />
       <Button onClick={create} disabled={busy || !name.trim()}>
