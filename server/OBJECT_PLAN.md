@@ -93,9 +93,14 @@ the injected workflow computes the score in CI and POSTs it to
 secret during provisioning. This is robust and matches GitHub's newer
 autograding reporter model.
 
+### Identity
+
+The framework's `auth_oauth2_client` extension now ships a **Forgejo OAuth2
+provider** (added alongside this project). When Forgejo is the login IdP, the
+accept flow's `self.requester.username` is the student's Forgejo login, so the
+repo name and access grant resolve automatically; the manual-username field is
+only a fallback for non-Forgejo logins.
+
 ### Not yet wired
 
-- Forgejo OAuth accept flow (the student currently supplies their Forgejo
-  username; wiring Forgejo as an OAuth2 provider auto-fills it).
-- Deadline **cutoff enforcement** (deadline is stored and displayed).
 - LMS/LTI roster sync (CSV import is the universal path today).

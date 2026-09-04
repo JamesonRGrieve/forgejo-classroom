@@ -63,7 +63,7 @@ client/     Next.js frontend — the `classroom` extension on client-framework
 | Batch clone all submissions | ✅ |
 | Re-run autograding | ✅ |
 | LMS roster sync (LTI) | ⚠️ CSV import is the universal path; LTI not wired |
-| "Log in with your git host" identity | ⚠️ student enters username; Forgejo OAuth auto-fill not wired |
+| "Log in with your git host" identity | ✅ Forgejo OAuth2 provider in the framework (`auth_oauth2_client`); when Forgejo is the login IdP, accept auto-fills the student's username |
 | Protected file paths | ✅ (autograder fails on protected-path changes) |
 | Editor / Codespaces integration | N/A — no Forgejo equivalent |
 
@@ -78,6 +78,7 @@ Runtime config comes from the environment — no secrets in the repo:
 | `CLASSROOM_API_URL` | Public base URL of this app (injected into each repo) |
 | `CLASSROOM_REPORT_TOKEN` | Shared bearer token the autograder uses to report |
 | `EGRESS_ALLOWED_HOSTS` | Must include the Forgejo host (the framework SSRF guard blocks private hosts otherwise) |
+| `FORGEJO_CLIENT_ID` / `FORGEJO_CLIENT_SECRET` | Forgejo OAuth2 app creds (framework `auth_oauth2_client` "Log in with Forgejo") |
 
 ## Why the framework fits
 
