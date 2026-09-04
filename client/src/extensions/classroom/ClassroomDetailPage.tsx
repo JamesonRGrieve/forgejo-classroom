@@ -131,6 +131,8 @@ function AssignmentsSection({
   const [slug, setSlug] = useState('');
   const [isGroup, setIsGroup] = useState(false);
   const [points, setPoints] = useState('');
+  const [deadline, setDeadline] = useState('');
+  const [enforceDeadline, setEnforceDeadline] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -148,11 +150,15 @@ function AssignmentsSection({
         slug: slug.trim() || undefined,
         is_group: isGroup,
         points_possible: points ? Number(points) : undefined,
+        deadline: deadline ? new Date(deadline).toISOString() : undefined,
+        enforce_deadline: enforceDeadline,
       });
       setName('');
       setTemplate('');
       setSlug('');
       setPoints('');
+      setDeadline('');
+      setEnforceDeadline(false);
       setIsGroup(false);
       assignments.reload();
     } catch (err) {
@@ -170,8 +176,10 @@ function AssignmentsSection({
         <Field label="Invite slug" id="a-slug" value={slug} onChange={setSlug} placeholder="lab-1" />
         <Field label="Template repo (owner/name)" id="a-template" value={template} onChange={setTemplate} placeholder="cmput174-f26/lab1-starter" />
         <Field label="Points possible" id="a-points" value={points} onChange={setPoints} type="number" />
+        <Field label="Deadline" id="a-deadline" value={deadline} onChange={setDeadline} type="datetime-local" />
       </div>
       <Checkbox label="Group assignment" id="a-group" checked={isGroup} onChange={setIsGroup} />
+      <Checkbox label="Enforce deadline (reject accepts after the deadline)" id="a-enforce" checked={enforceDeadline} onChange={setEnforceDeadline} />
       <Button onClick={create} disabled={busy || !name.trim()}>
         {busy ? 'Creating…' : 'Create assignment'}
       </Button>

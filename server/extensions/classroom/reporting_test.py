@@ -8,9 +8,12 @@ import os
 os.environ.setdefault("JWT_SECRET", "x" * 32)
 os.environ.setdefault("PYTEST_CURRENT_TEST", "reporting_test")
 
+from datetime import datetime, timezone
+
 from zephyrex.extensions.classroom.reporting import (
     build_grades_csv,
     build_submissions_manifest,
+    deadline_passed,
     parse_roster_csv,
     repo_name_for,
     slugify,
@@ -70,6 +73,25 @@ class TestGradesCsv:
         assert rows[0]["identifier"] == "1234"
         assert rows[0]["score"] == "87.5"
         assert "extra" not in rows[0]
+
+
+class TestDeadline:
+    NOW = datetime(2026, 9, 4, 12, 0, tzinfo=timezone.utc)
+
+    def test_none_never_passed(self):
+        assert deadline_passed(None, self.NOW) is False
+
+    def test_future_not_passed(self):
+        assert deadline_passed("2026-12-01T00:00:00Z", self.NOW) is False
+
+    def test_past_passed(self):
+        assert deadline_passed("2026-01-01T00:00:00Z", self.NOW) is True
+
+    def test_naive_treated_as_utc(self):
+        assert deadline_passed(datetime(2026, 1, 1, 0, 0), self.NOW) is True
+
+    def test_bad_string_not_passed(self):
+        assert deadline_passed("not-a-date", self.NOW) is False
 
 
 class TestSubmissionsManifest:

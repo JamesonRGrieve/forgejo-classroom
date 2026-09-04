@@ -143,6 +143,8 @@ function GradeTable({
         list.length === 0 ? (
           <p className="text-sm text-muted-foreground">No submissions yet. Share the invite link with students.</p>
         ) : (
+          <>
+          <GradeSummary repos={list} />
           <table className="w-full text-sm">
             <caption className="sr-only">Submissions and scores</caption>
             <thead>
@@ -174,9 +176,33 @@ function GradeTable({
               })}
             </tbody>
           </table>
+          </>
         )
       }
     </AsyncBoundary>
+  );
+}
+
+function GradeSummary({ repos }: { repos: AssignmentRepo[] }) {
+  const accepted = repos.length;
+  const graded = repos.filter((r) => r.latest_score != null).length;
+  const scores = repos.map((r) => r.latest_score).filter((s): s is number => s != null);
+  const avg = scores.length ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : '—';
+  return (
+    <dl className="mb-4 flex gap-6 text-sm" aria-label="Gradebook summary">
+      <div>
+        <dt className="text-muted-foreground">Accepted</dt>
+        <dd className="text-lg font-semibold">{accepted}</dd>
+      </div>
+      <div>
+        <dt className="text-muted-foreground">Graded</dt>
+        <dd className="text-lg font-semibold">{graded}</dd>
+      </div>
+      <div>
+        <dt className="text-muted-foreground">Average score</dt>
+        <dd className="text-lg font-semibold">{avg}</dd>
+      </div>
+    </dl>
   );
 }
 

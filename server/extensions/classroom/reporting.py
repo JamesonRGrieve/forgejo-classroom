@@ -12,7 +12,8 @@ from __future__ import annotations
 import csv
 import io
 import re
-from typing import Any, Dict, List, Mapping, Optional, Sequence
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Union
 
 # Accepted CSV header aliases (case-insensitive) → canonical field.
 _IDENTIFIER_ALIASES = ("identifier", "id", "student_id", "sis_id", "email")
@@ -83,6 +84,32 @@ def build_grades_csv(rows: Sequence[Mapping[str, Any]]) -> str:
     return buf.getvalue()
 
 
+def deadline_passed(deadline: Union[str, datetime, None], now: Optional[datetime] = None) -> bool:
+    """Return True when ``now`` is strictly after ``deadline``.
+
+    ``deadline`` may be a datetime or an ISO-8601 string (``Z`` accepted).
+    A naive deadline is treated as UTC. ``None`` deadline is never passed.
+    """
+    if deadline is None:
+        return False
+    if isinstance(deadline, str):
+        text = deadline.strip()
+        if not text:
+            return False
+        try:
+            parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+        except ValueError:
+            return False
+    else:
+        parsed = deadline
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    return current > parsed
+
+
 def build_submissions_manifest(base_url: str, repos: Sequence[Mapping[str, Any]]) -> Dict[str, Any]:
     """Build a batch-clone manifest + a ready-to-run clone script.
 
@@ -110,4 +137,5 @@ __all__ = [
     "parse_roster_csv",
     "build_grades_csv",
     "build_submissions_manifest",
+    "deadline_passed",
 ]

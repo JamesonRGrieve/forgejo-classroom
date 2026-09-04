@@ -319,11 +319,15 @@ class AssignmentModel(
         description="Closed enum: private|public. Visibility of accepted repos.",
     )
     invite_enabled: Optional[bool] = Field(True, description="Whether the accept link currently provisions repos.")
+    enforce_deadline: Optional[bool] = Field(
+        False,
+        description="When true, accepting after the deadline is rejected (hard cutoff).",
+    )
     table_comment: ClassVar[str] = (
         "An assignment. template_repo is the starter cloned per "
         "student/group; autograde_workflow names the Forgejo Actions "
         "workflow that scores pushes. is_group toggles individual vs "
-        "group provisioning."
+        "group provisioning. enforce_deadline turns deadline into a cutoff."
     )
 
     class Create(BaseModel, ClassroomModel.Reference.ID.Optional):
@@ -338,6 +342,7 @@ class AssignmentModel(
         autograde_workflow: Optional[str] = None
         visibility: Optional[AssignmentVisibility] = None
         invite_enabled: Optional[bool] = None
+        enforce_deadline: Optional[bool] = None
 
     class Update(BaseModel):
         name: Optional[str] = None
@@ -348,6 +353,7 @@ class AssignmentModel(
         autograde_workflow: Optional[str] = None
         visibility: Optional[AssignmentVisibility] = None
         invite_enabled: Optional[bool] = None
+        enforce_deadline: Optional[bool] = None
 
     class Search(ApplicationModel.Search, ClassroomModel.Reference.ID.Search):
         name: Optional[StringSearchModel] = None
@@ -405,6 +411,8 @@ class AssignmentManager(AbstractBLLManager, RouterMixin):
             raise HTTPException(status_code=404, detail="Assignment not found")
         if not _val(assignment, "invite_enabled", True):
             raise HTTPException(status_code=403, detail="Invitations are closed")
+        if _val(assignment, "enforce_deadline") and reporting.deadline_passed(_val(assignment, "deadline")):
+            raise HTTPException(status_code=403, detail="The deadline for this assignment has passed")
         classroom = _sibling_root(ClassroomManager, self).get(id=_val(assignment, "classroom_id"))
         org = _val(classroom, "forgejo_org")
         if not org:

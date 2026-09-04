@@ -30,6 +30,7 @@ export interface Assignment {
   template_repo?: string;
   is_group?: boolean;
   deadline?: string | null;
+  enforce_deadline?: boolean;
   points_possible?: number | null;
   visibility?: 'private' | 'public';
   invite_enabled?: boolean;

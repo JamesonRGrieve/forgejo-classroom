@@ -41,6 +41,32 @@ client/     Next.js frontend — the `classroom` extension on client-framework
 - **Gradebook** — per-student/group status and scores, one-click **regrade**,
   **grades CSV** export, and a **batch-clone** script for all submissions.
 
+## GitHub Classroom parity matrix
+
+| GitHub Classroom feature | Status |
+|--------------------------|--------|
+| Classrooms (org-backed) | ✅ |
+| Classroom admins / TAs | ✅ (framework Team roles) |
+| Roster create + CSV import + student linking | ✅ |
+| Individual assignments | ✅ |
+| Group assignments (team per group) | ✅ |
+| Starter / template repositories | ✅ |
+| Assignment invitation links | ✅ |
+| Repo visibility (public/private) | ✅ |
+| Deadlines + hard cutoff | ✅ |
+| Accept flow → per-student/group repo | ✅ |
+| Autograding on push (Actions) | ✅ |
+| Autograding presets (I/O, run-command) | ✅ |
+| Feedback pull requests | ✅ |
+| Submission status + scores dashboard | ✅ |
+| Grade export (CSV) | ✅ |
+| Batch clone all submissions | ✅ |
+| Re-run autograding | ✅ |
+| LMS roster sync (LTI) | ⚠️ CSV import is the universal path; LTI not wired |
+| "Log in with your git host" identity | ⚠️ student enters username; Forgejo OAuth auto-fill not wired |
+| Protected file paths | ⚠️ not implemented |
+| Editor / Codespaces integration | N/A — no Forgejo equivalent |
+
 ## Configuration (server)
 
 Runtime config comes from the environment — no secrets in the repo:
