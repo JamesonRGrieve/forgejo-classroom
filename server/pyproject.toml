@@ -8,7 +8,8 @@ version = "0.1.0"
 description = "GitHub-Classroom-equivalent for Forgejo, built as a Zephyrex ServerFramework consumer"
 requires-python = ">=3.11"
 dependencies = [
-    "zephyrex @ git+https://github.com/JamesonRGrieve/ServerFramework.git",
+    # The framework's public 0.0.x releases on PyPI.
+    "zephyrex~=0.0.1",
 ]
 
 [project.optional-dependencies]

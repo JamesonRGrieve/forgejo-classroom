@@ -78,8 +78,7 @@ Server:
 
 ```bash
 cd server
-pip install -e "../../server-framework[all]"
-pip install -e ".[dev]"
+pip install -e ".[dev]"   # installs the zephyrex framework from PyPI
 pytest extensions/        # 74 tests
 python app.py             # serves on http://localhost:2100
 ```

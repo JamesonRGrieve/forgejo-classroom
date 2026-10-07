@@ -7,22 +7,27 @@ all grades; a student sees only their own repo and runs). No hard
 extension dependency.
 """
 
-from typing import ClassVar, List, Type
+from typing import ClassVar
 
 from zephyrex.extensions.AbstractExtensionProvider import AbstractStaticExtension
+from zephyrex.lib.Dependencies import Dependencies, EXT_Dependency
 
 
 class ClassroomExtension(AbstractStaticExtension):
     name: ClassVar[str] = "classroom"
+    version: ClassVar[str] = "0.1.0"
     description: ClassVar[str] = (
         "GitHub-Classroom-equivalent for Forgejo: classrooms, rosters, "
         "assignments (template repos), accepted repositories, and "
         "autograding runs. Drives Forgejo as a companion runtime."
     )
-    extension_dependencies: ClassVar[List[str]] = []
-
-    @classmethod
-    def models(cls) -> List[Type]:
-        from zephyrex.extensions.classroom.BLL_Classroom import ALL_MODELS
-
-        return list(ALL_MODELS)
+    dependencies: ClassVar[Dependencies] = Dependencies(
+        [
+            EXT_Dependency(
+                name="acl_rbac",
+                friendly_name="ACL / RBAC",
+                optional=True,
+                reason="Per-row visibility: teachers see the roster, students their own work",
+            ),
+        ]
+    )

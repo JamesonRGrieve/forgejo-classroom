@@ -1,6 +1,10 @@
 name = "classroom"
 version = "0.1.0"
-description = "GitHub-Classroom-equivalent for Forgejo — classrooms, rosters, assignments, accepted repos, and autograding runs"
+description = "GitHub-Classroom-equivalent for Forgejo: classrooms, rosters, assignments (template repos), accepted repositories, and autograding runs. Drives Forgejo as a companion runtime."
+entry_module = "EXT_Classroom"
+minimum_framework_version = "0.0.1"
+# Where this extension's source is offered (AGPL-3.0 section 13).
+repository = "https://github.com/JamesonRGrieve/forgejo-classroom"
 
 # Optional: when present, acl_rbac drives per-row visibility so a teacher
 # sees the full roster and all grades while a student sees only their own
@@ -8,5 +12,3 @@ description = "GitHub-Classroom-equivalent for Forgejo — classrooms, rosters, 
 [[extension_dependencies]]
 name = "acl_rbac"
 optional = true
-
-[python_dependencies]

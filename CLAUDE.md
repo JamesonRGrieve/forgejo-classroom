@@ -41,7 +41,7 @@ Authoritative design + Forgejo wiring map: `server/OBJECT_PLAN.md`.
 
 ```bash
 # server
-cd server && pip install -e "../../server-framework[all]" && pip install -e ".[dev]"
+cd server && pip install -e ".[dev]"   # pulls zephyrex~=0.0.1 from PyPI
 pytest extensions/
 
 # client

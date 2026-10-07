@@ -31,8 +31,7 @@ companion-runtime wiring plan (REST operation map + autograding).
 ## Commands
 
 ```bash
-pip install -e "../../server-framework[all]"   # editable framework (local)
-pip install -e ".[dev]"                        # this project + dev deps
+pip install -e ".[dev]"                        # this project + dev deps; zephyrex~=0.0.1 from PyPI
 python app.py                                  # boot the server on port 2100
 pytest extensions/                             # run extension tests
 black --check extensions/ app.py conftest.py
